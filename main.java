@@ -25,6 +25,7 @@ public class main {
         }
      */
      int[] a = l.lerLinhas("txt.txt");
-             m.direto(1024, 8, 4,a);
+             //m.direto(1024, 8, 4,a);
+             m.direto(2048, 8, 4,a);
     }
 }
