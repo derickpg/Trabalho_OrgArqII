@@ -146,7 +146,7 @@ public class Mapeamento {
 
   // Para o mapeamento conjunto associativo, deve-se poder informar o tamanho em
   // bytes da cache, o número de palavras por bloco, o tamanho da o tamanho da palavra.
-  public void associativo(int tamCache, int tamPalavra, int nPalavras, int nConjuntos, int[] entrada){
+  public void associativo(int tamCache, int tamPalavra, int nPalavras, int nConjuntos, boolean tipoSubs, int[] entrada){
     // endereco = [  tag  |  bitC  |  bitP  ]
     // - Tamanho = num bits necessarios para representar o tamCache
     //      ex: 1 GigaByte  = 30 bits, 8KB = 13 bits, 256MB = 28 bits
@@ -171,19 +171,13 @@ public class Mapeamento {
 
     int[][] conjAssociativo = new int[nConjuntos][tamConjunto];
     int[][] cache = new int[nLinhas][1+nPalavras];
-    // ex: 1024 linhas, 4 conjuntos, 8 palavras
-    // conjAssociativo[4][256]
-    // cache[1024][9]
-    System.out.println("-------------------------");
-    System.out.println("Numero de linhas      : " + nLinhas);
-    // System.out.println("Numero de vias        : " + nWays);
-    System.out.println("Conjuntos associativos: " + nConjuntos);
-    System.out.println("Tamanho do conjunto   : " + tamConjunto);
-    System.out.println("-------------------------");
+
+    int controleLRU = 0;
+    int[][] lru = new int[nConjuntos][tamConjunto];
 
     // variaveis auxiliares
     int miss = 0, hit = 0;
-    int aux, random;
+    int aux, indice;
     int entT, entC, entP; // valor de entrada Tag, Conj, Palavra
     int conjToCache; // calcula a linha da cache a partir do conjunto
     // Deverá ser disponibilizado ao menos dois algoritmos a serem escolhidos como
@@ -193,6 +187,7 @@ public class Mapeamento {
     // | 1100010 |   01 |  101 |
     // |    entT | entC | entP |
     for (int i = 0; i < entrada.length; i++) {
+      controleLRU++;
       substitui = true;
       entP = entrada[i] & nPalavras-1;
       entC = (entrada[i] >> bitP) & nConjuntos-1;
@@ -214,6 +209,7 @@ System.out.println("DEBUG> entrada (" + entrada[i] + ") " + Integer.toBinaryStri
           // vou sinalizar miss e copiar o bloco de forma simples
           if(cache[conjToCache][0] == 0) {
             miss++;
+            lru[entC][j] = controleLRU; //marca uso
             aux = entrada[i] - entP;
             conjAssociativo[entC][j] = entT;
             cache[conjToCache][0] = 1;
@@ -226,6 +222,7 @@ System.out.println(" (existe tag mas nao tem DV)");
           } else /*hit?*/ {
             // achou a informacao sinaliza hit
             hit++;
+            lru[entC][j] = controleLRU; //marca uso
             if(entrada[i] == cache[conjToCache][entP+1]) {
 // System.out.println("DEBUG> acerto mizeravi");
 System.out.println("HIT> Encontrei o valor " + entrada[i] + " na linha " + conjToCache + " posicao " + entP + " do bloco da cache. Cheguei aqui a partir da linha " + j + " do conjunto " + entC);
@@ -233,7 +230,7 @@ System.out.println("HIT> Encontrei o valor " + entrada[i] + " na linha " + conjT
             }
           }
           break; //deu hit, para o for do conjunto
-        }
+        } // end if == entT
         //se estou lendo valores zerados do conjunto, entao vou sinalizar miss
         // copiar o bloco de forma simples e cair fora do for do conj
         if(conjAssociativo[entC][j] == 0 && cache[conjToCache][0] == 0) {
@@ -241,6 +238,7 @@ System.out.println("HIT> Encontrei o valor " + entrada[i] + " na linha " + conjT
 // System.out.println("j " + j);
 // System.out.println("entC " + entC);
           miss++;
+          lru[entC][j] = controleLRU; //marca uso
           aux = entrada[i] - entP;
           conjAssociativo[entC][j] = entT;
           cache[conjToCache][0] = 1;
@@ -256,13 +254,36 @@ System.out.println();
       //percorri todo FOR, verifico se precisa aplicar metodo de substituicao
       if(substitui == true) {
         //chama o metodo de substituição
-System.out.println("DEBUG> SUBSTITUICAO, CHAMA O BRESSAN :-)~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RANDOM ");
-        random = new Random().nextInt(tamConjunto);
-        conjToCache = random + tamConjunto*(entC);
+        // true random, false LRU?
+System.out.print("DEBUG> SUBSTITUICAO, CHAMA O BRESSAN :-)~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
+        if(tipoSubs) /* TRUE, politica randomico */ {
+          indice = new Random().nextInt(tamConjunto);
+System.out.println("RAND >>>>> " + indice + " + " + (entC*tamConjunto) + " = " + (indice + (entC*tamConjunto)));
+        } else /* FALSE, politica = LRU */ {
+          //percorrer o array LRU (igual ao conjunto, porem esse armazena o ultimo usado)
+          //comparando o valor armazenado (busca do menor), guarda o indice
+          aux = lru[entC][0];
+          indice = 0;
+System.out.print(lru[entC][0] + " | ");
+          for (int k = 1; k < tamConjunto; k++)
+            if (aux > lru[entC][k]) {
+System.out.print(lru[entC][k] + " | ");
+              aux = lru[entC][k];
+              indice = k;
+            } else
+System.out.print(lru[entC][k] + " | ");
+
+System.out.println(" --- LRU  >>>>> " + indice + " + " + (entC*tamConjunto) + " = " + (indice + (entC*tamConjunto)));
+        } //end else
+
+        conjToCache = indice + tamConjunto*(entC);
+
         miss++;
+        lru[entC][indice] = controleLRU; //marca uso
         aux = entrada[i] - entP;
-        conjAssociativo[entC][random] = entT;
+        conjAssociativo[entC][indice] = entT;
         cache[conjToCache][0] = 1;
+
 System.out.print("MISS> nova linha[" + conjToCache + "] > ");
         for (int k = 0; k < nPalavras; k++) {
           cache[conjToCache][k+1] = aux+k;
