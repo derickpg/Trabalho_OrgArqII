@@ -29,7 +29,7 @@ public class main {
              // m.direto(2048, 8, 4,a);
 
       //tamCache, tamPalav, nPalav, nWay, entrada
-      m.associativo(512, 16, 8, 4, a);
+      m.associativo(512, 16, 8, 4, true, a);
 
       int bin = 4096;
       System.out.print("entrada "+ bin);
