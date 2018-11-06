@@ -1,4 +1,7 @@
 
+import java.util.Random;
+
+
 public class Mapeamento {
 
     public void direto(int tamCache, int tamPalavra, int nPalavras, int[] ender) { //Mapeamento Direto
@@ -143,7 +146,7 @@ public class Mapeamento {
 
   // Para o mapeamento conjunto associativo, deve-se poder informar o tamanho em
   // bytes da cache, o número de palavras por bloco, o tamanho da o tamanho da palavra.
-  public void associativo(int tamCache, int tamPalavra, int nPalavras, int nWays, int[] entrada){
+  public void associativo(int tamCache, int tamPalavra, int nPalavras, int nConjuntos, int[] entrada){
     // endereco = [  tag  |  bitC  |  bitP  ]
     // - Tamanho = num bits necessarios para representar o tamCache
     //      ex: 1 GigaByte  = 30 bits, 8KB = 13 bits, 256MB = 28 bits
@@ -151,7 +154,7 @@ public class Mapeamento {
 
     // Numero de linhas = tamCache (em Bytes) / (tamPalavra*nPalavras / 8)
     int nLinhas = tamCache / ((tamPalavra*nPalavras) / 8);
-    int nConjuntos = nLinhas / nWays; //conjuntos = nWays linhas por conjunto
+    // int nConjuntos = nLinhas / nWays; //conjuntos = nWays linhas por conjunto
 
     // - Conteudo = TAG + bitC + bitP (num bits necessarios para representar nPalavras e nConjuntos)
     int bitP = Integer.toBinaryString(nPalavras).length()-1; //ex palavras = 4 , bitP = 2 (00,01,10,11)
@@ -173,58 +176,121 @@ public class Mapeamento {
     // cache[1024][9]
     System.out.println("-------------------------");
     System.out.println("Numero de linhas      : " + nLinhas);
-    System.out.println("Numero de vias        : " + nWays);
+    // System.out.println("Numero de vias        : " + nWays);
     System.out.println("Conjuntos associativos: " + nConjuntos);
+    System.out.println("Tamanho do conjunto   : " + tamConjunto);
     System.out.println("-------------------------");
 
     // variaveis auxiliares
     int miss = 0, hit = 0;
+    int aux, random;
     int entT, entC, entP; // valor de entrada Tag, Conj, Palavra
     int conjToCache; // calcula a linha da cache a partir do conjunto
-
     // Deverá ser disponibilizado ao menos dois algoritmos a serem escolhidos como
     // política de substituição (LRU, LFU, Relógio, randômico, sequencial, ...).
-
+    boolean substitui = true;
     // entrada 3149 = 110001001101 (ex: 8 palavras, 4 conjuntos)
     // | 1100010 |   01 |  101 |
     // |    entT | entC | entP |
     for (int i = 0; i < entrada.length; i++) {
+      substitui = true;
       entP = entrada[i] & nPalavras-1;
       entC = (entrada[i] >> bitP) & nConjuntos-1;
       entT = (entrada[i] >> (bitC + bitP) & 0xFFFFFFFF);
-System.out.println("DEBUG> (" + entrada[i] + ") " + Integer.toBinaryString(entrada[i]) + " |" + Integer.toBinaryString(entT) + "|" + Integer.toBinaryString(entC) + "|" + Integer.toBinaryString(entP) + "|");
+System.out.println("DEBUG> entrada (" + entrada[i] + ") " + Integer.toBinaryString(entrada[i]) + " |" + Integer.toBinaryString(entT) + "|" + Integer.toBinaryString(entC) + "|" + Integer.toBinaryString(entP) + "| -> |" +entT + "|" + entC + "|" + entP + "|");
       for (int j = 0; j < tamConjunto; j++) {
+        //calcula a linha na memoria cache, EX: cache de 1024 linhas, 4 conj
+        //  no conjunto entC=2 (0-3), indice j=3 (0-255)
+        //  na memoria cache sera na linha 3 + 256*(2+1) = 3+768 = 771
+        conjToCache = j + tamConjunto*(entC);
+
         //verifica se a tag j, presente no conjAssociativo entC é igual a entT
+// System.out.println("DEBUG> conjAssociativo[entC][j]=" + conjAssociativo[entC][j] + " == " + entT);
         if(conjAssociativo[entC][j] == entT){
-          //calcula a linha na memoria cache, EX: cache de 1024 linhas, 4 conj
-          //  no conjunto entC=2 (0-3), indice j=3 (0-255)
-          //  na memoria cache sera na linha 3 + 256*(2+1) = 3+768 = 771
-          conjToCache = j + tamConjunto*(entC+1);
-          //trabalha na memoria
+          substitui = false; //achou entao coloca substitui como false
+// System.out.println("DEBUG> .conj = " + entC + " , indice = " + j + " , conjToCache = " + conjToCache);
+          // se achou a tag mas na cache o bloco ainda nao foi copiado
+          // (pode acontecer caso a tag da entrada seja = 0)
+          // vou sinalizar miss e copiar o bloco de forma simples
           if(cache[conjToCache][0] == 0) {
-System.out.println("DEBUG> deu merda, existe a tag mas nao tem DV");
+            miss++;
+            aux = entrada[i] - entP;
+            conjAssociativo[entC][j] = entT;
+            cache[conjToCache][0] = 1;
+  System.out.print("MISS> nova linha[" + conjToCache + "] > ");
+            for (int k = 0; k < nPalavras; k++) {
+              cache[conjToCache][k+1] = aux+k;
+System.out.print(cache[conjToCache][k+1] + " | ");
+            }
+System.out.println(" (existe tag mas nao tem DV)");
           } else /*hit?*/ {
-            // busca
-            if(entrada[i] == cache[conjToCache][entP]) {
-System.out.println("DEBUG> acerto mizeravi");
-System.out.println("Encontrei o valor " + entrada[i] + " na linha " + conjToCache + " posicao " + entP + " do bloco da cache. Cheguei aqui a partir da linha " + j + " do conjunto " + entC);
+            // achou a informacao sinaliza hit
+            hit++;
+            if(entrada[i] == cache[conjToCache][entP+1]) {
+// System.out.println("DEBUG> acerto mizeravi");
+System.out.println("HIT> Encontrei o valor " + entrada[i] + " na linha " + conjToCache + " posicao " + entP + " do bloco da cache. Cheguei aqui a partir da linha " + j + " do conjunto " + entC);
+
             }
           }
-
-          break; //deu hit para o for
+          break; //deu hit, para o for do conjunto
         }
-      } //end for
-      //chama o metodo de substituição
-    }
+        //se estou lendo valores zerados do conjunto, entao vou sinalizar miss
+        // copiar o bloco de forma simples e cair fora do for do conj
+        if(conjAssociativo[entC][j] == 0 && cache[conjToCache][0] == 0) {
+          substitui = false; //achou entao coloca substitui como false
+// System.out.println("j " + j);
+// System.out.println("entC " + entC);
+          miss++;
+          aux = entrada[i] - entP;
+          conjAssociativo[entC][j] = entT;
+          cache[conjToCache][0] = 1;
+System.out.print("MISS> nova linha[" + conjToCache + "] > ");
+          for (int k = 0; k < nPalavras; k++) {
+            cache[conjToCache][k+1] = aux+k;
+System.out.print(cache[conjToCache][k+1] + " | ");
+          }
+System.out.println();
+          break;
+        }
+      } //end for do conj associativo
+      //percorri todo FOR, verifico se precisa aplicar metodo de substituicao
+      if(substitui == true) {
+        //chama o metodo de substituição
+System.out.println("DEBUG> SUBSTITUICAO, CHAMA O BRESSAN :-)~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RANDOM ");
+        random = new Random().nextInt(tamConjunto);
+        conjToCache = random + tamConjunto*(entC);
+        miss++;
+        aux = entrada[i] - entP;
+        conjAssociativo[entC][random] = entT;
+        cache[conjToCache][0] = 1;
+System.out.print("MISS> nova linha[" + conjToCache + "] > ");
+        for (int k = 0; k < nPalavras; k++) {
+          cache[conjToCache][k+1] = aux+k;
+System.out.print(cache[conjToCache][k+1] + " | ");
+        }
+System.out.println();
+
+      }
+    } //end for da entrada
 
     // Como resultado desta escolha, deve-se informar o número de conjuntos
     // associativos e o formato de interpretação do endereço (tag, conjunto, bloco).
 
-    System.out.println("-------------------------");
+    System.out.println("---------------------------");
     System.out.println("Numero de linhas      : " + nLinhas);
-    System.out.println("Numero de vias        : " + nWays);
+    // System.out.println("Numero de vias        : " + nWays);
     System.out.println("Conjuntos associativos: " + nConjuntos);
-    System.out.println("-------------------------");
+    System.out.println("Tamanho do conjunto   : " + tamConjunto);
+    System.out.println("Total de Hits         : " + hit);
+    System.out.println("Total de Miss         : " + miss);
+    System.out.println("---------------------------");
+
+for (int i = 0; i < nLinhas; i++) {
+  for (int j = 0; j < nPalavras+1; j++) {
+    System.out.print(cache[i][j] + " | ");
+  }
+System.out.println();
+}
 
   }
 }
