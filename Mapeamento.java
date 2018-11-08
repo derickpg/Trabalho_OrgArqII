@@ -24,13 +24,13 @@ public class Mapeamento {
             espacoUsado = aux; //Maior espaço usado é atualizado
         }
 
-        System.out.println("--------------------------------------------Informações Básicas----------------------------------------------------------------");
-        System.out.println("Espaço efetivo usado -> " + espacoUsado + "bytes ,");
-        System.out.println("A tag terá " + tag + " bits,");
-        System.out.println("A linha terá " + (Integer.toBinaryString(l).length() - 1) + " bits, e teremos " + l + " linhas");
-        System.out.println("e o bloco terá " + nPalavras + " palavras por bloco.");
-        System.out.println("--------------------------------------------FIM---------------------------------------------------------------------------------");
-        System.out.println("");
+        // System.out.println("--------------------------------------------Informações Básicas----------------------------------------------------------------");
+        // System.out.println("Espaço efetivo usado -> " + espacoUsado + "bytes ,");
+        // System.out.println("A tag terá " + tag + " bits,");
+        // System.out.println("A linha terá " + (Integer.toBinaryString(l).length() - 1) + " bits, e teremos " + l + " linhas");
+        // System.out.println("e o bloco terá " + nPalavras + " palavras por bloco.");
+        // System.out.println("--------------------------------------------FIM---------------------------------------------------------------------------------");
+        // System.out.println("");
 
         int[][] cache = new int[l][nPalavras + 2]; // [Numero de Linhas][Tamanho da linha]
         cache = zeraCache(cache, l, nPalavras + 2); //Inicia a cache toda com Zeros
@@ -43,43 +43,51 @@ public class Mapeamento {
             int linhaEnder = Integer.parseInt(endereco.substring(tag, tag + li), 2);
 
             if ((cache[linhaEnder][0]) == 1) { // SE o BV == 1
-                System.out.println("HIT - TAG = " + cache[linhaEnder][1] + "| tagEnder = " + tagEnder + "| linha = " + linhaEnder);
+// /*DEBUG*/ System.out.println("HIT - TAG = " + cache[linhaEnder][1] + "| tagEnder = " + tagEnder + "| linha = " + linhaEnder);
                 if ((cache[linhaEnder][1]) == tagEnder) {//Se a tag for igual
-                    //System.out.println("HIT TAG " + "  - " + (Integer.parseInt(endereco.substring(tag + li, 32), 2) + 2) + " sub " + endereco.substring(tag + li, 32));
+///*DEBUG*/ System.out.println("HIT TAG " + "  - " + (Integer.parseInt(endereco.substring(tag + li, 32), 2) + 2) + " sub " + endereco.substring(tag + li, 32));
                     int auxc = (Integer.parseInt(endereco.substring(tag + li, 32), 2) + 2); // Variavel auxiliar para guaradar a posicao do bloco que a palavra se encontra
                     if ((cache[linhaEnder][auxc]) == ender[i]) {// ve no bloco se ele está
-                        System.out.println("HIT EFETIVO");
-                        printCache(cache, l, nPalavras+2);
-                        //System.out.println("[Linha] " + Integer.parseInt(endereco.substring(tag, tag + li), 2) + " [Posição] " + Integer.parseInt(endereco.substring(tag + li, 32), 2));
+// /*DEBUG*/ System.out.println("HIT EFETIVO");
+                        // printCache(cache, l, nPalavras+2);
+///*DEBUG*/ System.out.println("[Linha] " + Integer.parseInt(endereco.substring(tag, tag + li), 2) + " [Posição] " + Integer.parseInt(endereco.substring(tag + li, 32), 2));
                         hit++;
                     } else {
-                        System.out.println("HITMISS");
+// /*DEBUG*/ System.out.println("HITMISS");
                         miss++;
                         int enderAux = ender[i] - Integer.parseInt(endereco.substring(tag + li, 32), 2);
                         cache = copiaBloco(Integer.parseInt(endereco.substring(tag, tag + li), 2), enderAux, cache, tagEnder, nPalavras);
-                        printCache(cache, l, nPalavras+2); // Metodo que printa a cache no final DEBUG
+                        // printCache(cache, l, nPalavras+2); // Metodo que printa a cache no final DEBUG
                     }
                 } else {
-                    System.out.println("HITMISS-2");
+// /*DEBUG*/ System.out.println("HITMISS-2");
                     miss++;
                     int enderAux = ender[i] - Integer.parseInt(endereco.substring(tag + li, 32), 2);
                     cache = copiaBloco(Integer.parseInt(endereco.substring(tag, tag + li), 2), enderAux, cache, tagEnder, nPalavras);
-                    printCache(cache, l, nPalavras+2); // Metodo que printa a cache no final DEBUG
+                    // printCache(cache, l, nPalavras+2); // Metodo que printa a cache no final DEBUG
                 }
             } else {
-                System.out.println("HIT - TAG = " + cache[linhaEnder][1] + "| tagEnder = " + tagEnder + "| linha = " + linhaEnder);
-                System.out.println("MISS");
+// /*DEBUG*/ System.out.println("HIT - TAG = " + cache[linhaEnder][1] + "| tagEnder = " + tagEnder + "| linha = " + linhaEnder);
+// /*DEBUG*/ System.out.println("MISS");
                 miss++;
                 int enderAux = ender[i] - Integer.parseInt(endereco.substring(tag + li, 32), 2); //Anota a primeira palavra que deve estar presente no bloco
                 cache = copiaBloco(Integer.parseInt(endereco.substring(tag, tag + li), 2), enderAux, cache, tagEnder, nPalavras);
-                printCache(cache, l, nPalavras+2); // Metodo que printa a cache no final DEBUG
+                // printCache(cache, l, nPalavras+2); // Metodo que printa a cache no final DEBUG
             }
 
-            //System.out.println("------------------------------------------------ próximo endereço -----------------------------");
+///*DEBUG*/ System.out.println("------------------------------------------------ próximo endereço -----------------------------");
         }
-        System.out.println("--------------------------------------------Informações Finais----------------------------------------------------------------");
-        System.out.println("Foram ["+miss+"] MISSs, e ["+hit+"] Hits.");
-        System.out.println("---------------------------------------------------FIM----------------------------------------------------------------");
+        System.out.println("------- Map. Direto --------");
+        System.out.println("Espaço efetivo usado : " + espacoUsado + " bytes");
+        System.out.println("Tamanho da Tag       : " + tag + " bits");
+        System.out.println("Numero de linhas     : " + l);
+        System.out.println("Total de Hits        : " + hit);
+        System.out.println("Total de Miss        : " + miss);
+        System.out.println("----------------------------");
+
+        // System.out.println("--------------------------------------------Informações Finais----------------------------------------------------------------");
+        // System.out.println("Foram ["+miss+"] MISSs, e ["+hit+"] Hits.");
+        // System.out.println("---------------------------------------------------FIM----------------------------------------------------------------");
     }
 
     //Método auxiliar onde realiza a cópia do bloco onde a palavra se encontra
@@ -114,7 +122,7 @@ public class Mapeamento {
         for (int i = 0; i < tam; i++) {
             bit = "0" + bit;
         }
-        System.out.println("[Endereço Solicitado] = " + endereco + " [ele em bits] = " + bit);
+        // /*DEBUG*/ System.out.println("[Endereço Solicitado] = " + endereco + " [ele em bits] = " + bit);
         return bit;
     }
 
@@ -178,7 +186,7 @@ public class Mapeamento {
       entP = entrada[i] & nPalavras-1;
       entC = (entrada[i] >> bitP) & nConjuntos-1;
       entT = (entrada[i] >> (bitC + bitP) & 0xFFFFFFFF);
-System.out.println("DEBUG> entrada (" + entrada[i] + ") " + Integer.toBinaryString(entrada[i]) + " |" + Integer.toBinaryString(entT) + "|" + Integer.toBinaryString(entC) + "|" + Integer.toBinaryString(entP) + "| -> |" +entT + "|" + entC + "|" + entP + "|");
+// System.out.println("DEBUG> entrada (" + entrada[i] + ") " + Integer.toBinaryString(entrada[i]) + " |" + Integer.toBinaryString(entT) + "|" + Integer.toBinaryString(entC) + "|" + Integer.toBinaryString(entP) + "| -> |" +entT + "|" + entC + "|" + entP + "|");
       for (int j = 0; j < tamConjunto; j++) {
         //calcula a linha na memoria cache, EX: cache de 1024 linhas, 4 conj
         //  no conjunto entC=2 (0-3), indice j=3 (0-255)
@@ -186,10 +194,8 @@ System.out.println("DEBUG> entrada (" + entrada[i] + ") " + Integer.toBinaryStri
         conjToCache = j + tamConjunto*(entC);
 
         //verifica se a tag j, presente no conjAssociativo entC é igual a entT
-// System.out.println("DEBUG> conjAssociativo[entC][j]=" + conjAssociativo[entC][j] + " == " + entT);
         if(conjAssociativo[entC][j] == entT){
           substitui = false; //achou entao coloca substitui como false
-// System.out.println("DEBUG> .conj = " + entC + " , indice = " + j + " , conjToCache = " + conjToCache);
           // se achou a tag mas na cache o bloco ainda nao foi copiado
           // (pode acontecer caso a tag da entrada seja = 0)
           // vou sinalizar miss e copiar o bloco de forma simples
@@ -199,19 +205,17 @@ System.out.println("DEBUG> entrada (" + entrada[i] + ") " + Integer.toBinaryStri
             aux = entrada[i] - entP;
             conjAssociativo[entC][j] = entT;
             cache[conjToCache][0] = 1;
-  System.out.print("MISS> nova linha[" + conjToCache + "] > ");
-            for (int k = 0; k < nPalavras; k++) {
+
+            for (int k = 0; k < nPalavras; k++)
               cache[conjToCache][k+1] = aux+k;
-System.out.print(cache[conjToCache][k+1] + " | ");
-            }
-System.out.println(" (existe tag mas nao tem DV)");
+
           } else /*hit?*/ {
             // achou a informacao sinaliza hit
             hit++;
             lru[entC][j] = controleLRU; //marca uso
             if(entrada[i] == cache[conjToCache][entP+1]) {
-// System.out.println("DEBUG> acerto mizeravi");
-System.out.println("HIT> Encontrei o valor " + entrada[i] + " na linha " + conjToCache + " posicao " + entP + " do bloco da cache. Cheguei aqui a partir da linha " + j + " do conjunto " + entC);
+/*DEBUG*/ //System.out.println("DEBUG> acerto mizeravi");
+/*DEBUG*/ //System.out.println("HIT> Encontrei o valor " + entrada[i] + " na linha " + conjToCache + " posicao " + entP + " do bloco da cache. Cheguei aqui a partir da linha " + j + " do conjunto " + entC);
 
             }
           }
@@ -221,19 +225,15 @@ System.out.println("HIT> Encontrei o valor " + entrada[i] + " na linha " + conjT
         // copiar o bloco de forma simples e cair fora do for do conj
         if(conjAssociativo[entC][j] == 0 && cache[conjToCache][0] == 0) {
           substitui = false; //achou entao coloca substitui como false
-// System.out.println("j " + j);
-// System.out.println("entC " + entC);
           miss++;
           lru[entC][j] = controleLRU; //marca uso
           aux = entrada[i] - entP;
           conjAssociativo[entC][j] = entT;
           cache[conjToCache][0] = 1;
-System.out.print("MISS> nova linha[" + conjToCache + "] > ");
-          for (int k = 0; k < nPalavras; k++) {
+
+          for (int k = 0; k < nPalavras; k++)
             cache[conjToCache][k+1] = aux+k;
-System.out.print(cache[conjToCache][k+1] + " | ");
-          }
-System.out.println();
+
           break;
         }
       } //end for do conj associativo
@@ -241,25 +241,19 @@ System.out.println();
       if(substitui == true) {
         //chama o metodo de substituição
         // true random, false LRU?
-System.out.print("DEBUG> SUBSTITUICAO, CHAMA O BRESSAN :-)~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
+
         if(tipoSubs) /* TRUE, politica randomico */ {
           indice = new Random().nextInt(tamConjunto);
-System.out.println("RAND >>>>> " + indice + " + " + (entC*tamConjunto) + " = " + (indice + (entC*tamConjunto)));
         } else /* FALSE, politica = LRU */ {
           //percorrer o array LRU (igual ao conjunto, porem esse armazena o ultimo usado)
           //comparando o valor armazenado (busca do menor), guarda o indice
           aux = lru[entC][0];
           indice = 0;
-System.out.print(lru[entC][0] + " | ");
           for (int k = 1; k < tamConjunto; k++)
             if (aux > lru[entC][k]) {
-System.out.print(lru[entC][k] + " | ");
               aux = lru[entC][k];
               indice = k;
-            } else
-System.out.print(lru[entC][k] + " | ");
-
-System.out.println(" --- LRU  >>>>> " + indice + " + " + (entC*tamConjunto) + " = " + (indice + (entC*tamConjunto)));
+            }
         } //end else
 
         conjToCache = indice + tamConjunto*(entC);
@@ -270,12 +264,8 @@ System.out.println(" --- LRU  >>>>> " + indice + " + " + (entC*tamConjunto) + " 
         conjAssociativo[entC][indice] = entT;
         cache[conjToCache][0] = 1;
 
-System.out.print("MISS> nova linha[" + conjToCache + "] > ");
-        for (int k = 0; k < nPalavras; k++) {
+        for (int k = 0; k < nPalavras; k++)
           cache[conjToCache][k+1] = aux+k;
-System.out.print(cache[conjToCache][k+1] + " | ");
-        }
-System.out.println();
 
       }
     } //end for da entrada
@@ -283,21 +273,28 @@ System.out.println();
     // Como resultado desta escolha, deve-se informar o número de conjuntos
     // associativos e o formato de interpretação do endereço (tag, conjunto, bloco).
 
-    System.out.println("---------------------------");
+    // for (int i = 0; i < nLinhas; i++) {
+    //   for (int j = 0; j < nPalavras+1; j++) {
+    //     System.out.print(cache[i][j] + " | ");
+    //   }
+    // System.out.println();
+    // }
+
+    // printCache(cache, nLinhas, nPalavras+1);
+
+    if(tipoSubs)
+      System.out.println("---------- Random ----------");
+    else
+      System.out.println("----- Last Recent Used -----");
     System.out.println("Numero de linhas      : " + nLinhas);
     // System.out.println("Numero de vias        : " + nWays);
     System.out.println("Conjuntos associativos: " + nConjuntos);
     System.out.println("Tamanho do conjunto   : " + tamConjunto);
     System.out.println("Total de Hits         : " + hit);
     System.out.println("Total de Miss         : " + miss);
-    System.out.println("---------------------------");
+    System.out.println("----------------------------");
 
-for (int i = 0; i < nLinhas; i++) {
-  for (int j = 0; j < nPalavras+1; j++) {
-    System.out.print(cache[i][j] + " | ");
-  }
-System.out.println();
-}
+
 
   }
 }

@@ -18,6 +18,18 @@ public class main {
         Mapeamento m = new Mapeamento();
         Leitor l = new Leitor();
 
+        // int[] ax = l.lerLinhas("arqAlternado");
+        // System.out.println("DIRETO");
+        // m.direto(1024, 8, 4, ax);
+        // System.out.println("RANDOM");
+        // m.associativo(128, 4, 4, 2, true, ax);
+        // m.associativo(16, 4, 4, 2, true, ax);
+        // m.associativo(8, 4, 4, 2, true, ax);
+        // m.associativo(4, 4, 4, 2, true, ax);
+        // System.out.println("LRU");
+        // m.associativo(8, 4, 4, 2, false, ax);
+
+
         // *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-* MENU *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*
         JOptionPane.showMessageDialog(null, "<><><><><><><><><><><><><><><><><><><><><> Mapeamento de Cache <><><><><><><><><><><><><><><><><><><><><><><> \n"
                 + " Autores: Derick Garcez e Vinicius Dos Santos \n"
@@ -95,7 +107,7 @@ public class main {
 //*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-* AREA DE DEBUG *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*
 //m.direto(1024, 8, 4,a);
 // m.direto(2048, 8, 4,a);
-//m.direto(1024, 8, 4,a); 
+//m.direto(1024, 8, 4,a);
 /*     //tamCache, tamPalav, nPalav, nWay, entrada
       m.associativo(512, 16, 8, 4, true, a);
 
@@ -129,5 +141,5 @@ public class main {
       // System.out.println(Integer.toBinaryString((cj << bitPl) + pl-1));
       // System.out.println((cj << bitPl) -1);
      */
-// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-* FIM DO DEBUG *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*    
+// *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-* FIM DO DEBUG *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*
 }
